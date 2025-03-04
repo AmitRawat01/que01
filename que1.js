@@ -1,54 +1,51 @@
-const { MongoClient, ObjectId } = require("mongodb");
-const md5 = require("md5");
+require('dotenv').config();
 
-const uri = mongodb+srvmongodb+srv//user2025:user2500@cluster0.gzh1q.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+const { MongoClient } = require('mongodb');
+const md5 = require('md5');
+const uri = process.env.MONGODB_URI;
 const client = new MongoClient(uri);
-
-async function insertUsersAndProfiles() {
-    try {
-        await client.connect();
-        console.log("Connected to MongoDB");
-
-        const db = client.db("MyDatabase");
-        const usersCollection = db.collection("Users");
-        const usersProfileCollection = db.collection("UsersProfile");
-
-        const users = [
-            { first_name: "abc", last_name: "xyz", email: "abc@example.com", password: "pass123" },
-
-            { first_name: "def", last_name: "uvw", email: "def@example.com", password: "mypassword" },
-            { first_name: "ghi", last_name: "rst", email: "ghi@example.com", password: "securepass" },
-            { first_name: "jkl", last_name: "opq", email: "jkl@example.com", password: "hello123" },
-            { first_name: "mno", last_name: "lmn", email: "mno@example.com", password: "mno1234" }
-        ];
-
-        let userProfiles = [];
-
-        for (let user of users) {
-            user.password = md5(user.password);
-            let result = await usersCollection.insertOne(user);
-            console.log(`User added: ${user.first_name} ${user.last_name}`);
-
-            let userProfile = {
-                user_id: result.insertedId,
-                dob: "2000-01-01",
-                mobile_no: "1234567890"
-            };
-
-            userProfiles.push(userProfile);
-        }
-
-        if (userProfiles.length > 0) {
-            await usersProfileCollection.insertMany(userProfiles);
-            console.log("All user profiles inserted!");
-        }
-
-    } catch (error) {
-        console.error("Error:", error);
-    } finally {
-        await client.close();
-        console.log("Connection closed");
+const users = [
+  { firstName: "Virat", lastName: "Kohli", email: "abc@gmail.com", password: md5("password1") },
+  { firstName: "Rishab", lastName: "Pant", email: "acd@gmail.com", password: md5("password2") },
+  { firstName: "Mahi", lastName: "Dhoni", email: "xyz@gmail.com.com", password: md5("password3") },
+  { firstName: "Rohit", lastName: "Sharma", email: "poq@gmail.com", password: md5("password4") },
+  { firstName: "Rahul", lastName: "KL", email: "xyzw@gmail.com", password: md5("password5") }
+];
+async function main() {
+  try {
+    await client.connect();
+    console.log("Connected to MongoDB");
+    const db = client.db("user1");
+    const usersCollection = db.collection("Users");
+    const usersProfileCollection = db.collection("UsersProfile");
+    const userInsertResults = await usersCollection.insertMany(users);
+    console.log("Inserted users:", userInsertResults);
+    if (userInsertResults.insertedCount > 0) {
+      const usersProfile = [];
+      for (let key in userInsertResults.insertedIds) {
+        const userId = userInsertResults.insertedIds[key];
+        console.log("User ID:", userId);
+        const profile = {
+          user_id: userId,
+          dob: new Date("1111-01-01"),
+          mobile_no: "1234567890"
+        };
+        usersProfile.push(profile);
+      }
+      if (usersProfile.length > 0) {
+        const profileInsertResults = await usersProfileCollection.insertMany(usersProfile);
+        console.log("Inserted user profiles:", profileInsertResults);
+        console.log("Users and UsersProfile inserted successfully!");
+      } else {
+        console.log("No user profiles to insert.");
+      }
+    } else {
+      console.log("No users were inserted.");
     }
+  } catch (e) {
+    console.error(e);
+  } finally {
+    await client.close();
+  }
 }
-
-insertUsersAndProfiles();
+main().catch(console.error);
