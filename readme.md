@@ -16,7 +16,6 @@ This project is a Node.js script to insert users and their profiles into a Mongo
 1. Clone the repository:
    ```bash
    git clone https://github.com/AmitRawat01/que01.git
-
-cd que01
-npm install
-node que01.js
+   cd que01
+   npm install
+   node que01.js
